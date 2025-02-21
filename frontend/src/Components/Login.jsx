@@ -9,6 +9,7 @@ import Button from '@mui/joy/Button';
 import Link from '@mui/joy/Link';
 import Axios from '../axios';
 import { useNavigate } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Login = () => {
 
@@ -23,8 +24,10 @@ const handleSubmit=(e)=>{
    
   Axios.post('/login',{email,password}).then((res)=>{
     console.log(res.data.message,'jjjjjjjjj');
-    console.log(res.data.user_id);
-    localStorage.setItem('userId',res.data.user_id)
+    toast.error(res.data.message,'jjjjjjjjj');
+
+    console.log(res.data.user._id);
+    localStorage.setItem('userId',res.data.user._id)
     navigate('/feed')
     
   })
@@ -34,14 +37,15 @@ const handleSubmit=(e)=>{
 
   return (
     <>
+    <Toaster toastOptions={{duration:3000}}/>
   <CssBaseline />
       <Sheet
         sx={{
           width: 300,
-          mx: 'auto', // margin left & right
-          my: 19, // margin top & bottom
-          py: 3, // padding top & bottom
-          px: 2, // padding left & right
+          mx: 'auto', 
+          my: 19, 
+          py: 3, 
+          px: 2, 
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
@@ -79,7 +83,7 @@ const handleSubmit=(e)=>{
             onChange={(e)=>setPassword(e.target.value)}
           />
         </FormControl>
-        <Button type='submit' sx={{ mt: 1 /* margin top */ }}>Login</Button>
+        <Button type='submit' sx={{ mt: 1}}>Login</Button>
 
         </form>
         <Typography

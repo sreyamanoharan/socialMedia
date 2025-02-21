@@ -46,16 +46,16 @@ const AddPost = ({ handleClose }) => {
         images,
         caption,
         user_id,
-        _id: res.data.postId, // Assuming backend returns post ID
+        _id: res.data.postId, 
       };
   
       if (props.onPostAdded) {
-        props.onPostAdded(newPost); // Update feed state in parent component
+        props.onPostAdded(newPost); 
       }
   
       setCaption("");
       setImages([]);
-      props.handleClose(); // Close modal
+      props.handleClose(); 
     } catch (error) {
       console.error("Error adding post:", error);
     }

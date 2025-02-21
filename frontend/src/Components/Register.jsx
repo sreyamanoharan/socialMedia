@@ -64,6 +64,8 @@ const Register = () => {
         Axios.post('/register', { name, email, password })
             .then((res) => {
                 if (res.data?.message) {
+                    console.log(res.data.message);
+                    
                     toast.success(res.data.message);
                 } else {
                     toast.success('Registration successful!');

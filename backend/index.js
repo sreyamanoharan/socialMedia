@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import mysql from 'mysql'
+import mongoose from 'mongoose'
 import userRoute from './Routes/UserRoute.js'
 
 const app=express()
@@ -13,19 +13,7 @@ app.listen(3000,()=>{
     
 })
 
-const db=mysql.createConnection({
-    host:'localhost',
-    user:'root',
-    password:'sreya@345',
-    database:'social'
-});
-
-db.connect((err) => {
-    if (err) {
-      console.error('Database connection failed:', err);
-    } else {
-      console.log('MySQL Database connected successfully!');
-    }
-  });
+mongoose.connect('mongodb://localhost:27017/socialMedia').then((res)=>{
+  console.log('db connected');
   
-  export default db;
+})

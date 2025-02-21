@@ -22,6 +22,7 @@ import "swiper/css/pagination";
 import { Pagination } from "swiper/modules";
 import Modal from "@mui/material/Modal";
 
+
 const style = {
   position: "absolute",
   top: "50%",
@@ -37,14 +38,14 @@ const style = {
 const Feed = ({ userId }) => {
   const [data, setData] = useState([]);
   const [commentInput, setCommentInput] = useState({});
-  const [likedPosts, setLikedPosts] = useState({});
+  const [likedPost, setLikedPost] = useState({});
+  const [likes,setLikes]=useState('')
   const [anchorEl, setAnchorEl] = useState(null);
   const [images, setImages] = useState([]);
   const [open, setOpen] = useState(false);
   const [caption, setCaption] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [sortCriteria, setSortCriteria] = useState(null); // State for sorting criteria
-
+  const [sortCriteria, setSortCriteria] = useState(null);
   const user_id = localStorage.getItem("userId");
   const opens = Boolean(anchorEl);
 
@@ -53,9 +54,9 @@ const Feed = ({ userId }) => {
       try {
         const endpoint = userId ? `/user-posts/${userId}` : "/get-posts";
         const res = await Axios.get(endpoint);
-        setData(res.data.result);
+        setData(res.data.data);
         const storedLikes = JSON.parse(localStorage.getItem("likedPosts")) || {};
-        setLikedPosts(storedLikes);
+        // setLikedPosts(storedLikes);
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
@@ -64,52 +65,32 @@ const Feed = ({ userId }) => {
     fetchPosts();
   }, [userId]);
 
-  // Sort posts based on the selected criteria
+
   useEffect(() => {
     if (sortCriteria) {
       const sortedData = [...data].sort((a, b) => {
         if (sortCriteria === "most_liked") {
-          return b.likes - a.likes; // Sort by likes (descending)
+          return b.likes - a.likes;
         } else if (sortCriteria === "most_commented") {
-          return (b.comments?.length || 0) - (a.comments?.length || 0); // Sort by comments (descending)
+          return (b.comments?.length || 0) - (a.comments?.length || 0);
         } else if (sortCriteria === "num_posts") {
-          return b.images.length - a.images.length; // Sort by number of images (descending)
+          return b.images.length - a.images.length;
         }
-        return 0; // Default: no sorting
+        return 0;
       });
       setData(sortedData);
     }
   }, [sortCriteria]);
 
-  const handleLike = async (postId) => {
-    const isLiked = likedPosts[postId];
 
-    try {
-      // Update UI instantly before API call
-      setLikedPosts((prevLikedPosts) => {
-        const updatedLikes = { ...prevLikedPosts, [postId]: !isLiked };
-        localStorage.setItem("likedPosts", JSON.stringify(updatedLikes));
-        return updatedLikes;
-      });
 
-      setData((prevData) =>
-        prevData.map((post) =>
-          post.id === postId
-            ? { ...post, likes: post.likes + (isLiked ? -1 : 1) }
-            : post
-        )
-      );
+const handleLikes=(postId)=>{
+  console.log(postId);
+  
+  //  const endpoint= liked ? `/like-post/${postId}`:`/unlike-post/${postId}`
+   Axios.post(endpoint,{user_id})
+}
 
-      // Perform API request (Optimistic UI)
-      if (isLiked) {
-        await Axios.post(`/unlike-post/${postId}`);
-      } else {
-        await Axios.post(`/like-post/${postId}`);
-      }
-    } catch (error) {
-      console.error("Error liking/unliking post:", error);
-    }
-  };
 
   const handleCommentChange = (postId, value) => {
     setCommentInput((prev) => ({ ...prev, [postId]: value }));
@@ -123,7 +104,6 @@ const Feed = ({ userId }) => {
         comment: commentInput[postId],
       });
       setCommentInput((prev) => ({ ...prev, [postId]: "" }));
-      // Refresh comments after submission
       const res = await Axios.get(`/get-posts`);
       setData(res.data.result);
     } catch (error) {
@@ -160,25 +140,11 @@ const Feed = ({ userId }) => {
     try {
       const res = await Axios.post("/add-post", { images, caption, user_id });
 
-      const newPost = {
-        id: res.data.postId, // Use the post ID from the backend
-        user_name: res.data.user_name, // Use the user_name from the backend
-        images,
-        caption,
-        likes: 0, // Initially zero likes
-        comments: [], // Empty comments initially
-        userId: user_id, // Use the current user's ID
-      };
+      setData((prevData) => [res.data.data, ...prevData]);
 
-      console.log("New Post:", newPost); // Debugging: Check the newPost object
-
-      // Add the new post to the top of the feed
-      setData((prevData) => [newPost, ...prevData]);
-
-      // Reset form fields
       setCaption("");
       setImages([]);
-      handleClose(); // Close the modal
+      handleClose();
     } catch (error) {
       console.error("Error adding post:", error);
     }
@@ -187,7 +153,7 @@ const Feed = ({ userId }) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // Filter Menu Handlers
+
   const handleFilterClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -195,7 +161,7 @@ const Feed = ({ userId }) => {
   const handleFilterClose = (filterType) => {
     setAnchorEl(null);
     if (filterType) {
-      setSortCriteria(filterType); // Set the sorting criteria
+      setSortCriteria(filterType);
     }
   };
 
@@ -278,7 +244,7 @@ const Feed = ({ userId }) => {
 
       {data?.map((dat) => (
         <Card key={dat.id} sx={{ maxWidth: 450, marginTop: "25px" }}>
-          <CardHeader title={dat.user_name} />
+          <CardHeader title={dat?.user?.name} />
           <Swiper pagination={{ clickable: true }} modules={[Pagination]}>
             {dat.images.map((image, index) => (
               <SwiperSlide key={index}>
@@ -292,8 +258,8 @@ const Feed = ({ userId }) => {
             </Typography>
           </CardContent>
           <CardActions disableSpacing>
-            <IconButton aria-label="like" onClick={() => handleLike(dat.id)}>
-              <FavoriteIcon sx={{ color: likedPosts[dat.id] ? "red" : "inherit" }} />
+            <IconButton aria-label="like" onClick={() => handleLikes(dat._id)}>
+            <FavoriteIcon sx={{ color: likedPost ? 'red' : 'inherit' }} />
             </IconButton>
             <Typography>{dat.likes}</Typography>
             <IconButton aria-label="comment">
