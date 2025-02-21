@@ -38,7 +38,7 @@ const style = {
 const Feed = ({ userId }) => {
   const [data, setData] = useState([]);
   const [commentInput, setCommentInput] = useState({});
-  const [likedPost, setLikedPost] = useState({});
+  const [likedPost, setLikedPost] = useState([]);
   const [likes,setLikes]=useState('')
   const [anchorEl, setAnchorEl] = useState(null);
   const [images, setImages] = useState([]);
@@ -85,10 +85,30 @@ const Feed = ({ userId }) => {
 
 
 const handleLikes=(postId)=>{
+  
   console.log(postId);
+  if(likedPost.includes(postId)){
+    setLikedPost((prev) => prev.filter((id) => id !== postId));
+    Axios.post(`/unlike-post/${postId}`,{user_id})
+
+    console.log('already thereee...');
+   
+
+  }else{
+    console.log(likedPost,'heyyyy');
+    Axios.post(`/like-post/${postId}`,{user_id}).then((res)=>{
+      console.log(res.data.likeCount,'fffffffffffffffffffff');
+      setLikes(res.data.likeCount)
+      
+    })
+    setLikedPost((prev)=>[postId,...prev])
+
+  }
+
+  
   
   //  const endpoint= liked ? `/like-post/${postId}`:`/unlike-post/${postId}`
-   Axios.post(endpoint,{user_id})
+  //  Axios.post(endpoint,{user_id})
 }
 
 
@@ -259,7 +279,7 @@ const handleLikes=(postId)=>{
           </CardContent>
           <CardActions disableSpacing>
             <IconButton aria-label="like" onClick={() => handleLikes(dat._id)}>
-            <FavoriteIcon sx={{ color: likedPost ? 'red' : 'inherit' }} />
+            <FavoriteIcon sx={{ color: likedPost.includes(dat._id) ? 'red' : 'inherit' }} />
             </IconButton>
             <Typography>{dat.likes}</Typography>
             <IconButton aria-label="comment">
