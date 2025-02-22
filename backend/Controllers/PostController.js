@@ -22,19 +22,60 @@ export const newPosts=async(req,res)=>{
 }
 
 
-export const getAllPosts=async(req,res)=>{
-    try {
-        const data = await Post.find().populate({ path: "user" , select :'name'});
+// export const getAllPosts=async(req,res)=>{
+//     try {
+//         const data = await Post.find().populate({ path: "user" , select :'name'});
 
-        console.log(data,'poooatttttt');
-        res.status(200).json({data})
-    } catch (error) {
-        console.log(error);
+//         console.log(data,'poooatttttt');
+//         res.status(200).json({data})
+//     } catch (error) {
+//         console.log(error);
         
-    }
+//     }
 
   
-}
+// }
+
+
+
+export const getAllPosts = async (req, res) => {
+    try {
+        const data = await Post.aggregate([
+            {
+                $lookup: {
+                    from: 'users', 
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userDetails'
+                }
+            },
+            {
+                $unwind: '$userDetails'
+            },
+
+            {
+                $lookup: {
+                    from: 'likes', 
+                    localField: '_id', 
+                    foreignField: 'post', 
+                    as: 'likes'
+                }
+            },
+            {
+                $addFields: {
+                    likeCount: { $size: '$likes' } 
+                }
+            }
+        ]);
+        console.log(data,'poooatttttt');
+
+        res.status(200).json({data});
+    } catch (error) {
+        console.error('Error getting posts:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 
 export const getUserPosts=()=>{
 

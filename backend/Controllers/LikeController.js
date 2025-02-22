@@ -10,9 +10,15 @@ export const likePost=async(req,res)=>{
     const likeCount = await Likes.countDocuments({ post });
     res.status(200).json({likeCount})
 
-     console.log(likeCount,'lllllllllllliiiiiiikkkkkkkkeesss');
+     console.log(likeCount,likes,'lllllllllllliiiiiiikkkkkkkkeesss');
      
 }
-export const unlikePost=()=>{
-    
+export const unlikePost=async(req,res)=>{
+   const user=req.query.user_id;
+   const post=req.params.postId
+   const likes=await Likes.deleteOne({user,post})
+   const likeCount=await Likes.countDocuments({post})    
+   console.log(likes,likeCount,'deleteLikesssss');
+   res.status(200).json({likeCount})
+   
 }

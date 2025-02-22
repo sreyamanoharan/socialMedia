@@ -39,7 +39,7 @@ const Feed = ({ userId }) => {
   const [data, setData] = useState([]);
   const [commentInput, setCommentInput] = useState({});
   const [likedPost, setLikedPost] = useState([]);
-  const [likes,setLikes]=useState('')
+  const [likes, setLikes] = useState('')
   const [anchorEl, setAnchorEl] = useState(null);
   const [images, setImages] = useState([]);
   const [open, setOpen] = useState(false);
@@ -55,8 +55,9 @@ const Feed = ({ userId }) => {
         const endpoint = userId ? `/user-posts/${userId}` : "/get-posts";
         const res = await Axios.get(endpoint);
         setData(res.data.data);
+        console.log(res.data.data, '=========================================================');
+
         const storedLikes = JSON.parse(localStorage.getItem("likedPosts")) || {};
-        // setLikedPosts(storedLikes);
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
@@ -83,33 +84,49 @@ const Feed = ({ userId }) => {
   }, [sortCriteria]);
 
 
+  useEffect(() => {
+    const storedLikes = JSON.parse(localStorage.getItem("likedPosts")) || [];
+    setLikedPost(storedLikes);
+  }, []);
+  const handleLikes = (postId) => {
 
-const handleLikes=(postId)=>{
-  
-  console.log(postId);
-  if(likedPost.includes(postId)){
-    setLikedPost((prev) => prev.filter((id) => id !== postId));
-    Axios.post(`/unlike-post/${postId}`,{user_id})
+    console.log(postId);
+    if (likedPost.includes(postId)) {
+      setLikedPost((prev) => prev.filter((id) => id !== postId));
+      Axios.delete(`/unlike-post/${postId}?user_id=${user_id}`).then((res) => {
+        console.log(res.data.likeCount, 'mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm');
+        setData((prev) => prev.map((post) =>
+          post._id === postId ? { ...post, likeCount: res.data.likeCount } : post
+        ))
 
-    console.log('already thereee...');
-   
+      })
 
-  }else{
-    console.log(likedPost,'heyyyy');
-    Axios.post(`/like-post/${postId}`,{user_id}).then((res)=>{
-      console.log(res.data.likeCount,'fffffffffffffffffffff');
-      setLikes(res.data.likeCount)
-      
-    })
-    setLikedPost((prev)=>[postId,...prev])
+      console.log('already thereee...');
+
+
+    } else {
+      console.log(likedPost, 'heyyyy');
+      Axios.post(`/like-post/${postId}`, { user_id }).then((res) => {
+        console.log(res.data.likeCount, 'like count updated');
+        setData((prev) =>
+          prev.map((post) =>
+            post._id === postId
+              ? { ...post, likeCount: res.data.likeCount }
+              : post
+          )
+        );
+
+
+      })
+      setLikedPost((prev) => [postId, ...prev])
+
+    }
+
+
+    localStorage.setItem("likedPosts", JSON.stringify([...likedPost, postId]));
+
 
   }
-
-  
-  
-  //  const endpoint= liked ? `/like-post/${postId}`:`/unlike-post/${postId}`
-  //  Axios.post(endpoint,{user_id})
-}
 
 
   const handleCommentChange = (postId, value) => {
@@ -264,7 +281,7 @@ const handleLikes=(postId)=>{
 
       {data?.map((dat) => (
         <Card key={dat.id} sx={{ maxWidth: 450, marginTop: "25px" }}>
-          <CardHeader title={dat?.user?.name} />
+          <CardHeader title={dat?.userDetails?.name} />
           <Swiper pagination={{ clickable: true }} modules={[Pagination]}>
             {dat.images.map((image, index) => (
               <SwiperSlide key={index}>
@@ -279,9 +296,9 @@ const handleLikes=(postId)=>{
           </CardContent>
           <CardActions disableSpacing>
             <IconButton aria-label="like" onClick={() => handleLikes(dat._id)}>
-            <FavoriteIcon sx={{ color: likedPost.includes(dat._id) ? 'red' : 'inherit' }} />
+              <FavoriteIcon sx={{ color: likedPost.includes(dat._id) ? 'red' : 'inherit' }} />
             </IconButton>
-            <Typography>{dat.likes}</Typography>
+            <Typography>{dat.likeCount}</Typography>
             <IconButton aria-label="comment">
               <CommentIcon />
             </IconButton>

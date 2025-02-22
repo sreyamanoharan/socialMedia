@@ -19,7 +19,7 @@ userRoute.get('/user-posts/:userId',getUserPosts)
 userRoute.post("/like-post/:postId", likePost);
 userRoute.post("/add-comment/:postId", addComment);
 userRoute.get('/get-comments/:postId',getCommets)
-userRoute.post('/unlike-post/:postId',unlikePost)
+userRoute.delete('/unlike-post/:postId',unlikePost)
 
 
 export default userRoute
