@@ -56,8 +56,7 @@ const Feed = ({ userId }) => {
         const res = await Axios.get(endpoint);
         setData(res.data.data);
         console.log(res.data.data, '=========================================================');
-
-        const storedLikes = JSON.parse(localStorage.getItem("likedPosts")) || {};
+ 
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
@@ -67,65 +66,31 @@ const Feed = ({ userId }) => {
   }, [userId]);
 
 
-  useEffect(() => {
-    if (sortCriteria) {
-      const sortedData = [...data].sort((a, b) => {
-        if (sortCriteria === "most_liked") {
-          return b.likes - a.likes;
-        } else if (sortCriteria === "most_commented") {
-          return (b.comments?.length || 0) - (a.comments?.length || 0);
-        } else if (sortCriteria === "num_posts") {
-          return b.images.length - a.images.length;
-        }
-        return 0;
-      });
-      setData(sortedData);
-    }
-  }, [sortCriteria]);
+
 
 
   useEffect(() => {
-    const storedLikes = JSON.parse(localStorage.getItem("likedPosts")) || [];
-    setLikedPost(storedLikes);
+    Axios.get(`/get-likes?user_id=${user_id}`).then((res)=>{
+      console.log(res.data.likedPost,'llllllllllllliiiiiiiii');
+      
+      setLikedPost(res.data.likedPost)
+    },[user_id])
+    
   }, []);
-  const handleLikes = (postId) => {
-
-    console.log(postId);
-    if (likedPost.includes(postId)) {
-      setLikedPost((prev) => prev.filter((id) => id !== postId));
-      Axios.delete(`/unlike-post/${postId}?user_id=${user_id}`).then((res) => {
-        console.log(res.data.likeCount, 'mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm');
-        setData((prev) => prev.map((post) =>
-          post._id === postId ? { ...post, likeCount: res.data.likeCount } : post
-        ))
-
-      })
-
-      console.log('already thereee...');
-
-
-    } else {
-      console.log(likedPost, 'heyyyy');
-      Axios.post(`/like-post/${postId}`, { user_id }).then((res) => {
-        console.log(res.data.likeCount, 'like count updated');
-        setData((prev) =>
-          prev.map((post) =>
-            post._id === postId
-              ? { ...post, likeCount: res.data.likeCount }
-              : post
-          )
-        );
-
-
-      })
-      setLikedPost((prev) => [postId, ...prev])
-
-    }
-
-
-    localStorage.setItem("likedPosts", JSON.stringify([...likedPost, postId]));
-
-
+  const handleLikes=(postId)=>{
+    console.log(likedPost,postId,'chnagggggggeeesss');
+    
+    console.log(postId,'frontendddddd');
+    
+    Axios.post(`/toggle-like/${postId}?user_id=${user_id}`).then((res)=>{
+      console.log(res.data.likeCount,res.data.liked,'wooooowwww');
+      setData((prev)=>prev.map((post)=>post._id===postId?{...post,likeCount:res.data.likeCount}:post))
+        if(res.data.liked){
+          setLikedPost((prev)=>[...prev,postId])
+        }else{
+          setLikedPost((prev)=>prev.filter((id)=> id!==postId))
+        }
+    })
   }
 
 
@@ -175,9 +140,11 @@ const Feed = ({ userId }) => {
     e.preventDefault();
 
     try {
-      const res = await Axios.post("/add-post", { images, caption, user_id });
+       await Axios.post("/add-post", { images, caption, user_id }).then((res)=>{
+        setData((prevData) => [res.data.data, ...prevData]);
 
-      setData((prevData) => [res.data.data, ...prevData]);
+      })
+
 
       setCaption("");
       setImages([]);
@@ -253,35 +220,11 @@ const Feed = ({ userId }) => {
           </Box>
         </Modal>
 
-        {/* Filter Icon and Dropdown */}
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <IconButton
-            size="large"
-            aria-label="filter options"
-            aria-controls="filter-menu"
-            aria-haspopup="true"
-            color="inherit"
-            onClick={handleFilterClick}
-          >
-            <FilterListIcon />
-          </IconButton>
-          <p>Filters</p>
-          <Menu
-            id="filter-menu"
-            anchorEl={anchorEl}
-            open={opens}
-            onClose={() => handleFilterClose(null)}
-          >
-            <MenuItem onClick={() => handleFilterClose("most_liked")}>Most Liked</MenuItem>
-            <MenuItem onClick={() => handleFilterClose("most_commented")}>Most Commented</MenuItem>
-            <MenuItem onClick={() => handleFilterClose("num_posts")}>Number of Images</MenuItem>
-          </Menu>
-        </div>
       </div>
 
       {data?.map((dat) => (
         <Card key={dat.id} sx={{ maxWidth: 450, marginTop: "25px" }}>
-          <CardHeader title={dat?.userDetails?.name} />
+          <CardHeader title={dat?.user?.name} />
           <Swiper pagination={{ clickable: true }} modules={[Pagination]}>
             {dat.images.map((image, index) => (
               <SwiperSlide key={index}>

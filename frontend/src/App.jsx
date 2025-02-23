@@ -4,6 +4,7 @@ import Register from './Components/Register'
 import Login from './Components/Login'
 import {Route,Routes,BrowserRouter as Router} from 'react-router-dom'
 import Feed from './Components/feed'
+import UserProfile from './Components/UserProfile'
 
 
 
@@ -20,7 +21,7 @@ function App() {
     <Route path='/' element={<Login/>}/>
     <Route path="/feed" element={<Feed />} />
     <Route path="/my-posts" element={<Feed userId={userId} />} />
-
+     <Route path='/profile' element={<UserProfile/>}/>
 
    </Routes>
   </Router>

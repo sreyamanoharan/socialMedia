@@ -65,7 +65,7 @@ export default function Navbar() {
               aria-haspopup="true"
               color="inherit"
             >
-              <Link to={'/my-posts'} style={{ color: 'inherit' }}>
+              <Link to={'/profile'} style={{ color: 'inherit' }}>
                 <AccountCircle />
               </Link>
             </IconButton>

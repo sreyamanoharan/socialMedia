@@ -46,11 +46,11 @@ export const getAllPosts = async (req, res) => {
                     from: 'users', 
                     localField: 'user',
                     foreignField: '_id',
-                    as: 'userDetails'
+                    as: 'user'
                 }
             },
             {
-                $unwind: '$userDetails'
+                $unwind: '$user'
             },
 
             {
@@ -65,10 +65,12 @@ export const getAllPosts = async (req, res) => {
                 $addFields: {
                     likeCount: { $size: '$likes' } 
                 }
+            },{
+                $sort:{createdAt:-1}
             }
         ]);
-        console.log(data,'poooatttttt');
-
+        console.log(data);
+        
         res.status(200).json({data});
     } catch (error) {
         console.error('Error getting posts:', error);
@@ -77,6 +79,6 @@ export const getAllPosts = async (req, res) => {
 };
 
 
-export const getUserPosts=()=>{
+export const getUserPosts=(req,res)=>{
 
 }

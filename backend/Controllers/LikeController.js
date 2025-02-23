@@ -1,24 +1,40 @@
 import Likes from "../Models/likeModel.js"
 
-export const likePost=async(req,res)=>{
+export const getLike=async(req,res)=>{
+console.log('hhhiiiiii');
 
-    const user=req.body.user_id
-    const post=req.params.postId
-    console.log(user,post,'lkkkkkkkssssss');
-    
-    const likes=await Likes.create({user ,post})
-    const likeCount = await Likes.countDocuments({ post });
-    res.status(200).json({likeCount})
+const userId=req.query.user_id
+console.log(userId,'getLikessss');
 
-     console.log(likeCount,likes,'lllllllllllliiiiiiikkkkkkkkeesss');
+const likes=await Likes.find({user:userId}).populate('post')
+const likedPost=likes.map((data)=>data.post._id)
+console.log(likes,likedPost,'llllliiikkkeesss');
+res.status(200).json({likedPost})
+   
      
 }
-export const unlikePost=async(req,res)=>{
-   const user=req.query.user_id;
-   const post=req.params.postId
-   const likes=await Likes.deleteOne({user,post})
-   const likeCount=await Likes.countDocuments({post})    
-   console.log(likes,likeCount,'deleteLikesssss');
-   res.status(200).json({likeCount})
+export const toggleLike=async(req,res)=>{
+
+   const postId=req.params.postId
+   const userId=req.query.user_id
+   console.log(postId,userId,'ppppppppppppp');
+    
+   const existingLike=await Likes.findOne({user:userId, post:postId})
+   console.log(existingLike,'existimgggggggg.......');
+
+   if(existingLike){
+      const likes=await Likes.deleteOne({user:userId, post:postId})
+      const likeCount=await Likes.countDocuments({post:postId})
+      console.log(likeCount,'likecounssssss');
+      
+      res.status(200).json({liked:false ,likeCount})      
+   }else{
+      const likes=await Likes.create({user:userId,post:postId})
+      const likeCount=await Likes.countDocuments({post:postId})
+      console.log(likes,likeCount,'likeddddddd');
+      res.status(200).json({likeCount,liked:true})
+      
+   }
+   
    
 }

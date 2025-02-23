@@ -56,3 +56,11 @@ export const login = async (req, res) => {
   }
 };
 
+export const getProfile=async(req,res)=>{
+  const id=req.params.userId
+  console.log(id);
+  const user=await User.findOne({_id:id})
+  console.log(user,'heheheheheheheeheh');
+  res.status(200).json({user})
+  
+}
